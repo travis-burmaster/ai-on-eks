@@ -1,0 +1,29 @@
+apiVersion: ray.io/v1alpha1
+kind: RayCluster
+metadata:
+  name: example-ray-cluster
+spec:
+  head:
+    serviceType: ClusterIP
+    rayStartParams:
+      dashboard-host: "0.0.0.0"
+    template:
+      spec:
+        containers:
+        - name: ray-head
+          image: rayproject/ray:latest
+          resources:
+            limits:
+              cpu: 1
+              memory: 2Gi
+  worker:
+    replicas: 2
+    template:
+      spec:
+        containers:
+        - name: ray-worker
+          image: rayproject/ray:latest
+          resources:
+            limits:
+              cpu: 1
+              memory: 2Gi
