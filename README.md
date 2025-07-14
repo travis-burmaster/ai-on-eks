@@ -35,7 +35,7 @@ AI on EKS provides modular Terraform templates and curated deployment blueprints
 
 ## Example AI Workload
 
-This example deploys a simple Ray cluster on EKS for distributed AI workloads.
+This example deploys a JARK stack (Jupyter, Apache Airflow, Ray, Kubeflow) on EKS for comprehensive AI/ML workflows.
 
 ## License
 

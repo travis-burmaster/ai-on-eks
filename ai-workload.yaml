@@ -1,7 +1,90 @@
+# JARK Stack Deployment (Jupyter, Apache Airflow, Ray, Kubeflow)
+
+---
+# Jupyter Notebook Server
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jupyter-notebook
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jupyter
+  template:
+    metadata:
+      labels:
+        app: jupyter
+    spec:
+      containers:
+      - name: jupyter
+        image: jupyter/datascience-notebook:latest
+        ports:
+        - containerPort: 8888
+        resources:
+          limits:
+            cpu: 1
+            memory: 2Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jupyter-service
+spec:
+  selector:
+    app: jupyter
+  ports:
+  - port: 8888
+    targetPort: 8888
+  type: LoadBalancer
+
+---
+# Apache Airflow
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: airflow-webserver
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: airflow
+  template:
+    metadata:
+      labels:
+        app: airflow
+    spec:
+      containers:
+      - name: airflow
+        image: apache/airflow:2.7.0
+        ports:
+        - containerPort: 8080
+        env:
+        - name: AIRFLOW__CORE__EXECUTOR
+          value: "LocalExecutor"
+        resources:
+          limits:
+            cpu: 1
+            memory: 2Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: airflow-service
+spec:
+  selector:
+    app: airflow
+  ports:
+  - port: 8080
+    targetPort: 8080
+  type: LoadBalancer
+
+---
+# Ray Cluster
 apiVersion: ray.io/v1alpha1
 kind: RayCluster
 metadata:
-  name: example-ray-cluster
+  name: jark-ray-cluster
 spec:
   head:
     serviceType: ClusterIP
@@ -27,3 +110,41 @@ spec:
             limits:
               cpu: 1
               memory: 2Gi
+
+---
+# Kubeflow Pipelines (minimal setup)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kubeflow-pipelines-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kfp-api
+  template:
+    metadata:
+      labels:
+        app: kfp-api
+    spec:
+      containers:
+      - name: kfp-api
+        image: gcr.io/ml-pipeline/api-server:2.0.0
+        ports:
+        - containerPort: 8888
+        resources:
+          limits:
+            cpu: 500m
+            memory: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kubeflow-pipelines-service
+spec:
+  selector:
+    app: kfp-api
+  ports:
+  - port: 8888
+    targetPort: 8888
+  type: ClusterIP
